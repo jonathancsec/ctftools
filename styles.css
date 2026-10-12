@@ -1,0 +1,16 @@
+body {
+    background-color: rgb(236, 208, 187);
+}
+h1 {
+    color: rgb(137, 68, 0);
+}
+.title-bar{
+    background-color: rgb(237, 155, 73);
+    color:white;
+    text-align:center;
+    display: flex;
+}
+.title-bar h1{
+    margin: 0;
+
+}
