@@ -17,6 +17,129 @@
             <a href="misc.html">Misc.</a>
         </div>
     </nav>
-    <p>this is the cryptography page!</p>
+    <main class="crypto-page">
+        <header class="crypto-header">
+            <p class="eyebrow">CTF TOOLKIT / CRYPTOGRAPHY</p>
+            <h1>Cipher Decoder</h1>
+        </header>
+
+        <div class="decoder-grid">
+            <section class="decoder-panel" aria-labelledby="caesar-heading">
+                <h2 id="caesar-heading">Caesar Cipher</h2>
+                <form id="caesar-form">
+                    <label for="caesar-input">Ciphertext</label>
+                    <textarea id="caesar-input" rows="5" placeholder="Enter ciphertext" required></textarea>
+                    <div class="form-row">
+                        <div class="field-group">
+                            <label for="caesar-shift">Shift</label>
+                            <input id="caesar-shift" type="number" min="0" max="25" value="3" required>
+                        </div>
+                        <button type="submit">Decode</button>
+                        <button id="all-shifts-button" class="secondary-button" type="button">Try all shifts</button>
+                    </div>
+                </form>
+                <div id="caesar-result" class="result" aria-live="polite" hidden></div>
+                <ol id="caesar-candidates" class="candidate-list" aria-live="polite" hidden></ol>
+            </section>
+
+            <section class="decoder-panel" aria-labelledby="railfence-heading">
+                <h2 id="railfence-heading">Rail Fence Cipher</h2>
+                <form id="railfence-form">
+                    <label for="railfence-input">Ciphertext</label>
+                    <textarea id="railfence-input" rows="5" placeholder="Enter ciphertext" required></textarea>
+                    <div class="form-row">
+                        <div class="field-group">
+                            <label for="rail-count">Number of rails</label>
+                            <input id="rail-count" type="number" min="1" value="3" required>
+                        </div>
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="railfence-result" class="result" aria-live="polite" hidden></div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        async function decodeWithPython(request) {
+            let response;
+            try {
+                response = await fetch("/api/decode", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(request)
+                });
+            } catch {
+                throw new Error("Cannot reach the Python decoder. Run python server.py and open this page at http://127.0.0.1:8000/cryptography.html.");
+            }
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || "Decoding failed.");
+            return result;
+        }
+
+        const caesarForm = document.getElementById("caesar-form");
+        const caesarResult = document.getElementById("caesar-result");
+        const caesarCandidates = document.getElementById("caesar-candidates");
+
+        caesarForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const text = document.getElementById("caesar-input").value;
+            caesarResult.hidden = false;
+            caesarCandidates.hidden = true;
+            caesarResult.textContent = "Decoding...";
+            try {
+                const shift = Number(document.getElementById("caesar-shift").value);
+                const result = await decodeWithPython({ cipher: "caesar", text, shift });
+                caesarResult.textContent = result.text;
+            } catch (error) {
+                caesarResult.textContent = error.message;
+            }
+        });
+
+        document.getElementById("all-shifts-button").addEventListener("click", async () => {
+            const text = document.getElementById("caesar-input").value;
+            if (!text) {
+                document.getElementById("caesar-input").focus();
+                return;
+            }
+
+            caesarResult.hidden = false;
+            caesarCandidates.hidden = true;
+            caesarResult.textContent = "Trying all shifts...";
+            try {
+                const result = await decodeWithPython({ cipher: "caesar", text, all_shifts: true });
+                caesarCandidates.replaceChildren();
+                for (const candidate of result.results) {
+                    const item = document.createElement("li");
+                    const label = document.createElement("strong");
+                    const decodedText = document.createElement("span");
+                    label.textContent = `Shift ${candidate.shift}`;
+                    decodedText.textContent = candidate.text;
+                    item.append(label, decodedText);
+                    caesarCandidates.append(item);
+                }
+                caesarResult.hidden = true;
+                caesarCandidates.hidden = false;
+            } catch (error) {
+                caesarResult.textContent = error.message;
+            }
+        });
+
+        document.getElementById("railfence-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const text = document.getElementById("railfence-input").value;
+            const rails = Number(document.getElementById("rail-count").value);
+            const result = document.getElementById("railfence-result");
+            result.hidden = false;
+            result.textContent = "Decoding...";
+            try {
+                const decoded = await decodeWithPython({ cipher: "railfence", text, rails });
+                result.textContent = decoded.text;
+            } catch (error) {
+                result.textContent = error.message;
+            }
+        });
+    </script>
 </body>
 </html>

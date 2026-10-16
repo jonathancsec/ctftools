@@ -32,3 +32,142 @@ h1 {
 .nav-links a:hover{
     color: antiquewhite;
 }
+.crypto-page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 38px 28px 52px;
+    color: #30271f;
+    font-family: Georgia, serif;
+}
+.crypto-header {
+    margin-bottom: 26px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #c9a98e;
+}
+.crypto-header .eyebrow {
+    display: none;
+}
+.crypto-header h1 {
+    margin: 0;
+    font-size: 32px;
+}
+.decoder-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 36px;
+    align-items: start;
+}
+.decoder-panel {
+    min-width: 0;
+    padding: 0;
+}
+.decoder-panel h2 {
+    margin: 0 0 18px;
+    color: #894400;
+    font-size: 22px;
+}
+.decoder-panel label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 700;
+}
+.decoder-panel textarea,
+.decoder-panel input {
+    box-sizing: border-box;
+    width: 100%;
+    border: 1px solid #9e8875;
+    background: #fff;
+    color: #30271f;
+    font: inherit;
+}
+.decoder-panel textarea {
+    min-height: 120px;
+    padding: 9px;
+    resize: vertical;
+}
+.decoder-panel input {
+    min-height: 38px;
+    padding: 7px 9px;
+}
+.decoder-panel textarea:focus,
+.decoder-panel input:focus {
+    outline: 2px solid #df6f2e;
+    outline-offset: 1px;
+}
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 8px;
+    margin-top: 12px;
+}
+.field-group {
+    width: 120px;
+}
+.decoder-panel button {
+    min-height: 38px;
+    padding: 7px 12px;
+    border: 1px solid #894400;
+    background: #df6f2e;
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+.decoder-panel button:hover {
+    background: #bd5420;
+}
+.decoder-panel .secondary-button {
+    background: transparent;
+    color: #894400;
+}
+.decoder-panel .secondary-button:hover {
+    background: rgba(223, 111, 46, 0.12);
+}
+.result {
+    min-height: 22px;
+    margin-top: 16px;
+    padding: 10px 0;
+    border-top: 1px solid #c9a98e;
+    font-family: Consolas, monospace;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+.candidate-list {
+    max-height: 320px;
+    margin: 16px 0 0;
+    padding: 0 0 0 28px;
+    overflow-y: auto;
+}
+.candidate-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #c9a98e;
+    overflow-wrap: anywhere;
+}
+.candidate-list strong {
+    display: inline-block;
+    min-width: 72px;
+    color: #805031;
+}
+.crypto-page [hidden] {
+    display: none;
+}
+@media (max-width: 720px) {
+    .crypto-page {
+        padding: 30px 18px 42px;
+    }
+    .decoder-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 28px;
+    }
+}
+@media (max-width: 420px) {
+    .form-row > button {
+        flex: 1 1 100%;
+    }
+    .field-group {
+        width: 100%;
+    }
+}
