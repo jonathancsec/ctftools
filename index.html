@@ -3,20 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2b1d14">
     <link rel="stylesheet" href="styles.css">
     <title>CTF Tools</title>
-</head> 
+</head>
 <body>
     <nav class="navbar">
         <a href="index.html" class="logo">CTF Tools</a>
 
         <div class="nav-links">
-            <a href="index.html">Home</a>
+            <a href="index.html" aria-current="page">Home</a>
             <a href="cryptography.html">Cryptography</a>
             <a href="forensics.html">Forensics</a>
             <a href="misc.html">Misc.</a>
         </div>
     </nav>
-    <p>This is the index page!</p>
+
+    <header class="hero">
+        <p class="eyebrow">CTF Toolkit</p>
+        <h1>Handy tools for CTF challenges.</h1>
+        <p>A small collection of decoders and helpers for capture-the-flag puzzles. Pick a category below, paste in your data, and get an answer.</p>
+    </header>
+
+    <main class="tool-grid">
+        <a class="tool-card" href="cryptography.html">
+            <span class="tool-index">01</span>
+            <h2>Cryptography</h2>
+            <p>Auto-decode plus Caesar/ROT, Vigenère, rail fence, Atbash, Base32/64 and more.</p>
+        </a>
+        <a class="tool-card" href="forensics.html">
+            <span class="tool-index">02</span>
+            <h2>Forensics</h2>
+            <p>Upload an image or file and run signature, metadata, LSB and embedded-file checks.</p>
+        </a>
+        <a class="tool-card" href="misc.html">
+            <span class="tool-index">03</span>
+            <h2>Misc.</h2>
+            <p>Odds and ends that do not fit the other categories. Coming soon.</p>
+        </a>
+    </main>
 </body>
 </html>

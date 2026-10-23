@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}New analysis &middot; {{ project_name }}{% endblock %}
+{% block page %}upload{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <p class="eyebrow">Digital forensics / automated triage</p>
+    <h1>Inspect a file with a real forensic toolchain.</h1>
+    <p class="lede">
+        Upload a file and the worker runs metadata, string, signature, steganography,
+        network and disk checks. You get a structured report with tool logs, versions
+        and downloadable artifacts.
+    </p>
+</section>
+
+<form class="upload" method="post" action="{{ url_for('upload') }}"
+      enctype="multipart/form-data" id="upload-form"
+      data-max-bytes="{{ config.MAX_CONTENT_LENGTH }}">
+    <label class="dropzone" id="dropzone" for="file-input">
+        <span class="dropzone__title">Drop a file here</span>
+        <span class="dropzone__hint">or click to choose from your computer</span>
+        <input id="file-input" class="file-input" type="file" name="file" required>
+    </label>
+
+    <div class="upload__actions">
+        <p id="file-summary" class="file-summary">No file selected.</p>
+        <button id="analyze-button" class="button" type="submit" disabled>Analyze file</button>
+    </div>
+
+    <p id="upload-error" class="form-error" hidden></p>
+
+    <div class="upload__options">
+        <label class="field" for="passphrase">
+            <span class="field__label">
+                Steghide passphrase <span class="muted">(optional)</span>
+            </span>
+            <input id="passphrase" class="field__input" type="password"
+                   name="passphrase" maxlength="256" autocomplete="off"
+                   spellcheck="false"
+                   placeholder="Only for passphrase-protected steghide data">
+            <span class="field__hint">
+                Used once for this analysis and never stored. Leave empty to try an
+                empty passphrase only; no guessing is performed.
+            </span>
+        </label>
+    </div>
+
+    <div class="upload__notes">
+        <p>
+            Maximum upload size: <strong>{{ max_upload }}</strong>. Files are stored only for
+            analysis and kept for {{ retention_hours }} hours, after which the cleanup task
+            removes them.
+        </p>
+        <p>
+            Categories checked: images (PNG, JPEG, GIF, BMP, TIFF, WebP), archives
+            (ZIP, gzip, 7z, RAR), documents (PDF), packet captures (pcap, pcapng),
+            disk images (ISO, raw, ext) and any other binary. The type is detected
+            from file content, not from the filename.
+        </p>
+        <p>
+            Job pages are unlisted but not access-controlled: anyone with a job link
+            can read its report and download its artifacts. Do not upload private or
+            sensitive files to a public instance.
+        </p>
+    </div>
+</form>
+
+{% if jobs %}
+<section class="recent">
+    <h2>Recent analyses</h2>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Detected type</th>
+                    <th>Size</th>
+                    <th>Status</th>
+                    <th>Created (UTC)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in jobs %}
+                <tr>
+                    <td><a href="{{ url_for('job_detail', job_id=item.id) }}">{{ item.original_name }}</a></td>
+                    <td>{{ item.detected_type }}</td>
+                    <td>{{ item.size | human_size }}</td>
+                    <td><span class="status status--{{ item.status }}">{{ item.status }}</span></td>
+                    <td class="mono">{{ item.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

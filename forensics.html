@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2b1d14">
     <link rel="stylesheet" href="styles.css">
-    <title>CTF Tools</title>
-</head> 
+    <script src="forensics.js" defer></script>
+    <title>Forensics &middot; CTF Tools</title>
+</head>
 <body>
     <nav class="navbar">
         <a href="index.html" class="logo">CTF Tools</a>
@@ -13,10 +15,35 @@
         <div class="nav-links">
             <a href="index.html">Home</a>
             <a href="cryptography.html">Cryptography</a>
-            <a href="forensics.html">Forensics</a>
+            <a href="forensics.html" aria-current="page">Forensics</a>
             <a href="misc.html">Misc.</a>
         </div>
     </nav>
-    <p>This is the forensics page!</p>
+
+    <main class="forensics-page">
+        <header class="crypto-header">
+            <p class="eyebrow">CTF Toolkit / Forensics</p>
+            <h1>Image forensics</h1>
+        </header>
+
+        <form id="forensics-form" class="forensics-form">
+            <label class="drop-zone" id="drop-zone" for="forensics-file">
+                <span class="drop-title">Drop a file here</span>
+                <span class="drop-hint">or click to choose &middot; PNG, JPEG, GIF, ZIP, anything up to 25 MB</span>
+                <input id="forensics-file" class="file-input" type="file" accept="image/*,.zip,.bin,.txt,.dat">
+            </label>
+            <div class="upload-actions">
+                <span id="file-info" class="file-info">No file selected</span>
+                <button id="analyze-button" type="submit" disabled>Analyze</button>
+            </div>
+        </form>
+
+        <p id="forensics-status" class="search-status" aria-live="polite" hidden></p>
+
+        <section id="forensics-results" class="report" hidden>
+            <div id="report-summary" class="report-summary" hidden></div>
+            <div id="report-sections" class="report-sections"></div>
+        </section>
+    </main>
 </body>
 </html>

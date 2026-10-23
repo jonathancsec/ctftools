@@ -1,0 +1,80 @@
+name: forensic-workbench
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    command: ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "180", "app:create_app()"]
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-change-me-before-deploying}
+      DATA_DIR: /data
+      QUEUE_MODE: rq
+      REDIS_URL: redis://redis:6379/0
+      RQ_QUEUE: forensics
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-33554432}
+      MAX_ARTIFACT_BYTES: ${MAX_ARTIFACT_BYTES:-5242880}
+      RETENTION_HOURS: ${RETENTION_HOURS:-24}
+      TOOL_TIMEOUT: ${TOOL_TIMEOUT:-60}
+      UPLOAD_LIMIT_PER_HOUR: ${UPLOAD_LIMIT_PER_HOUR:-20}
+      MAX_PENDING_JOBS: ${MAX_PENDING_JOBS:-25}
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+    ports:
+      - "8000:8000"
+    volumes:
+      - forensics-data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 512m
+
+  worker:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    command: ["rq", "worker", "--url", "redis://redis:6379/0", "forensics"]
+    environment:
+      DATA_DIR: /data
+      QUEUE_MODE: rq
+      REDIS_URL: redis://redis:6379/0
+      RQ_QUEUE: forensics
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-33554432}
+      MAX_ARTIFACT_BYTES: ${MAX_ARTIFACT_BYTES:-5242880}
+      RETENTION_HOURS: ${RETENTION_HOURS:-24}
+      TOOL_TIMEOUT: ${TOOL_TIMEOUT:-60}
+    volumes:
+      - forensics-data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 1g
+    pids_limit: 256
+
+volumes:
+  forensics-data:
+  redis-data:

@@ -3,53 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2b1d14">
     <link rel="stylesheet" href="styles.css">
-    <title>CTF Tools</title>
-</head> 
+    <script src="cryptography.js" defer></script>
+    <title>Cryptography &middot; CTF Tools</title>
+</head>
 <body>
     <nav class="navbar">
         <a href="index.html" class="logo">CTF Tools</a>
 
         <div class="nav-links">
             <a href="index.html">Home</a>
-            <a href="cryptography.html">Cryptography</a>
+            <a href="cryptography.html" aria-current="page">Cryptography</a>
             <a href="forensics.html">Forensics</a>
             <a href="misc.html">Misc.</a>
         </div>
     </nav>
+
     <main class="crypto-page">
         <header class="crypto-header">
-            <p class="eyebrow">CTF TOOLKIT / CRYPTOGRAPHY</p>
-            <h1>Cipher Decoder</h1>
+            <p class="eyebrow">CTF Toolkit / Cryptography</p>
+            <h1>Cipher &amp; encoding decoders</h1>
         </header>
 
+        <div class="tool-search">
+            <label for="cipher-search">Search tools</label>
+            <input id="cipher-search" class="search-input" type="search" placeholder="auto-decode, caesar, vigenere, base32, bacon, morse" autocomplete="off">
+        </div>
+        <p id="search-status" class="search-status" aria-live="polite" hidden></p>
+
         <div class="decoder-grid">
-            <section class="decoder-panel" aria-labelledby="caesar-heading">
-                <h2 id="caesar-heading">Caesar Cipher</h2>
+            <section class="decoder-panel decoder-panel--wide" data-search="auto autodecode auto-decode detect identify unknown guess cipher encoding">
+                <h2>Auto-decode</h2>
+                <form id="auto-form">
+                    <label for="auto-input">Ciphertext or encoded text</label>
+                    <textarea id="auto-input" rows="4" placeholder="Paste anything: Wkh..., SGVsbG8=, 01001000..., .... . .-.. .-.. ---" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Auto-decode</button>
+                    </div>
+                </form>
+                <p class="panel-hint">
+                    Tries common encodings plus Caesar/ROT, Atbash, ROT47, rail fence, A1Z26,
+                    Bacon, affine and Vigenère. Results are ranked by how English-like they
+                    look, so short or non-English plaintext can be misleading. Columnar
+                    transposition still needs its keyword. Up to 5,000 characters per run.
+                </p>
+                <div id="auto-result" class="result" aria-live="polite" hidden></div>
+                <ol id="auto-results" class="candidate-list auto-results" aria-live="polite" hidden></ol>
+            </section>
+
+            <section class="decoder-panel" data-search="caesar rot rot13 rot-n shift alphabet cipher rotate">
+                <h2>Caesar / ROT-N</h2>
                 <form id="caesar-form">
                     <label for="caesar-input">Ciphertext</label>
-                    <textarea id="caesar-input" rows="5" placeholder="Enter ciphertext" required></textarea>
+                    <textarea id="caesar-input" rows="4" placeholder="Enter ciphertext" required></textarea>
                     <div class="form-row">
                         <div class="field-group">
                             <label for="caesar-shift">Shift</label>
                             <input id="caesar-shift" type="number" min="0" max="25" value="3" required>
                         </div>
                         <button type="submit">Decode</button>
-                        <button id="all-shifts-button" class="secondary-button" type="button">Try all shifts</button>
+                        <button id="caesar-all-shifts" class="secondary-button" type="button">Try all shifts</button>
+                        <button id="caesar-rot13" class="secondary-button" type="button">ROT13</button>
                     </div>
                 </form>
                 <div id="caesar-result" class="result" aria-live="polite" hidden></div>
                 <ol id="caesar-candidates" class="candidate-list" aria-live="polite" hidden></ol>
             </section>
 
-            <section class="decoder-panel" aria-labelledby="railfence-heading">
-                <h2 id="railfence-heading">Rail Fence Cipher</h2>
+            <section class="decoder-panel" data-search="rail fence railfence rails zigzag transposition cipher">
+                <h2>Rail Fence</h2>
                 <form id="railfence-form">
                     <label for="railfence-input">Ciphertext</label>
-                    <textarea id="railfence-input" rows="5" placeholder="Enter ciphertext" required></textarea>
+                    <textarea id="railfence-input" rows="4" placeholder="Enter ciphertext" required></textarea>
                     <div class="form-row">
                         <div class="field-group">
-                            <label for="rail-count">Number of rails</label>
+                            <label for="rail-count">Rails</label>
                             <input id="rail-count" type="number" min="1" value="3" required>
                         </div>
                         <button type="submit">Decode</button>
@@ -57,89 +86,181 @@
                 </form>
                 <div id="railfence-result" class="result" aria-live="polite" hidden></div>
             </section>
+
+            <section class="decoder-panel" data-search="atbash mirror reverse alphabet substitution cipher">
+                <h2>Atbash</h2>
+                <form id="atbash-form">
+                    <label for="atbash-input">Ciphertext</label>
+                    <textarea id="atbash-input" rows="4" placeholder="Gsrh rh z gvhg" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="atbash-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="rot47 ascii rotate 47 cipher printable">
+                <h2>ROT47</h2>
+                <form id="rot47-form">
+                    <label for="rot47-input">Ciphertext</label>
+                    <textarea id="rot47-input" rows="4" placeholder="%96 BF:4< 3C@H? 7@I" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="rot47-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="vigenere vigenère key polyalphabetic cipher">
+                <h2>Vigenère</h2>
+                <form id="vigenere-form">
+                    <label for="vigenere-input">Ciphertext</label>
+                    <textarea id="vigenere-input" rows="4" placeholder="LXFOPVEFRNHR" required></textarea>
+                    <label for="vigenere-key">Key</label>
+                    <input id="vigenere-key" type="text" placeholder="LEMON" autocomplete="off" required>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="vigenere-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="columnar transposition column keyword cipher">
+                <h2>Columnar Transposition</h2>
+                <form id="columnar-form">
+                    <label for="columnar-input">Ciphertext</label>
+                    <textarea id="columnar-input" rows="4" placeholder="Ciphertext read from the ordered columns" required></textarea>
+                    <label for="columnar-key">Keyword</label>
+                    <input id="columnar-key" type="text" placeholder="ZEBRA" autocomplete="off" required>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <p class="panel-hint">Columns are read in alphabetical order of the keyword.</p>
+                <div id="columnar-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="binary bits ascii 8-bit base2 decode">
+                <h2>Binary</h2>
+                <form id="binary-form">
+                    <label for="binary-input">Binary (8 bits per character)</label>
+                    <textarea id="binary-input" rows="4" placeholder="01001000 01101001" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="binary-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="hex hexadecimal base16 bytes ascii decode">
+                <h2>Hex</h2>
+                <form id="hex-form">
+                    <label for="hex-input">Hex bytes</label>
+                    <textarea id="hex-input" rows="4" placeholder="48 65 6c 6c 6f" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="hex-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="base32 base 32 b32 encoding ascii decode">
+                <h2>Base32</h2>
+                <form id="base32-form">
+                    <label for="base32-input">Base32 text</label>
+                    <textarea id="base32-input" rows="4" placeholder="JBSWY3DPEBLW64TMMQ======" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="base32-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="base85 base 85 ascii85 b85 encoding ascii decode">
+                <h2>Base85 / Ascii85</h2>
+                <form id="base85-form">
+                    <label for="base85-input">Base85 or Ascii85 text</label>
+                    <textarea id="base85-input" rows="4" placeholder="BOu!rD]j7BEbo80" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <p class="panel-hint">Tries both RFC 1924 Base85 and Adobe Ascii85.</p>
+                <div id="base85-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="base64 base 64 b64 encoding ascii decode">
+                <h2>Base64</h2>
+                <form id="base64-form">
+                    <label for="base64-input">Base64 text</label>
+                    <textarea id="base64-input" rows="4" placeholder="SGVsbG8gd29ybGQ=" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="base64-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="url percent encoding uri decode escape">
+                <h2>URL Encoding</h2>
+                <form id="url-form">
+                    <label for="url-input">Percent-encoded text</label>
+                    <textarea id="url-input" rows="4" placeholder="flag%7Bhello%20world%7D" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="url-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="html entities entity escape decode">
+                <h2>HTML Entities</h2>
+                <form id="html-form">
+                    <label for="html-input">HTML-escaped text</label>
+                    <textarea id="html-input" rows="4" placeholder="flag&amp;#123;hello&amp;nbsp;world&amp;#125;" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="html-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="morse code dots dashes telegraph decode">
+                <h2>Morse Code</h2>
+                <form id="morse-form">
+                    <label for="morse-input">Morse code (/ between words)</label>
+                    <textarea id="morse-input" rows="4" placeholder=".... . .-.. .-.. --- / .-- --- .-. .-.. -.." required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="morse-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="bacon baconian ab ba five bit cipher">
+                <h2>Bacon's Cipher</h2>
+                <form id="bacon-form">
+                    <label for="bacon-input">Groups of five A/B (or 0/1) symbols</label>
+                    <textarea id="bacon-input" rows="4" placeholder="AABBB AABAA ABABB ABABB ABBBA" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="bacon-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="a1z26 a1z26 numbers alphabet letters numeric">
+                <h2>A1Z26</h2>
+                <form id="a1z26-form">
+                    <label for="a1z26-input">Numbers 1-26 (/ between words)</label>
+                    <textarea id="a1z26-input" rows="4" placeholder="20 8 5 / 17 21 9 3 11" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="a1z26-result" class="result" aria-live="polite" hidden></div>
+            </section>
         </div>
     </main>
-
-    <script>
-        async function decodeWithPython(request) {
-            let response;
-            try {
-                response = await fetch("/api/decode", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(request)
-                });
-            } catch {
-                throw new Error("Cannot reach the Python decoder. Run python server.py and open this page at http://127.0.0.1:8000/cryptography.html.");
-            }
-
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || "Decoding failed.");
-            return result;
-        }
-
-        const caesarForm = document.getElementById("caesar-form");
-        const caesarResult = document.getElementById("caesar-result");
-        const caesarCandidates = document.getElementById("caesar-candidates");
-
-        caesarForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            const text = document.getElementById("caesar-input").value;
-            caesarResult.hidden = false;
-            caesarCandidates.hidden = true;
-            caesarResult.textContent = "Decoding...";
-            try {
-                const shift = Number(document.getElementById("caesar-shift").value);
-                const result = await decodeWithPython({ cipher: "caesar", text, shift });
-                caesarResult.textContent = result.text;
-            } catch (error) {
-                caesarResult.textContent = error.message;
-            }
-        });
-
-        document.getElementById("all-shifts-button").addEventListener("click", async () => {
-            const text = document.getElementById("caesar-input").value;
-            if (!text) {
-                document.getElementById("caesar-input").focus();
-                return;
-            }
-
-            caesarResult.hidden = false;
-            caesarCandidates.hidden = true;
-            caesarResult.textContent = "Trying all shifts...";
-            try {
-                const result = await decodeWithPython({ cipher: "caesar", text, all_shifts: true });
-                caesarCandidates.replaceChildren();
-                for (const candidate of result.results) {
-                    const item = document.createElement("li");
-                    const label = document.createElement("strong");
-                    const decodedText = document.createElement("span");
-                    label.textContent = `Shift ${candidate.shift}`;
-                    decodedText.textContent = candidate.text;
-                    item.append(label, decodedText);
-                    caesarCandidates.append(item);
-                }
-                caesarResult.hidden = true;
-                caesarCandidates.hidden = false;
-            } catch (error) {
-                caesarResult.textContent = error.message;
-            }
-        });
-
-        document.getElementById("railfence-form").addEventListener("submit", async (event) => {
-            event.preventDefault();
-            const text = document.getElementById("railfence-input").value;
-            const rails = Number(document.getElementById("rail-count").value);
-            const result = document.getElementById("railfence-result");
-            result.hidden = false;
-            result.textContent = "Decoding...";
-            try {
-                const decoded = await decodeWithPython({ cipher: "railfence", text, rails });
-                result.textContent = decoded.text;
-            } catch (error) {
-                result.textContent = error.message;
-            }
-        });
-    </script>
 </body>
 </html>

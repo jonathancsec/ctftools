@@ -1,0 +1,27 @@
+# Git and local environments
+.git
+.github
+.venv
+venv
+.env
+__pycache__
+*.pyc
+.pytest_cache
+data
+
+# Static CTF toolkit; not part of the workbench image
+index.html
+cryptography.html
+cryptography.js
+forensics.html
+forensics.js
+misc.html
+styles.css
+server.py
+crypto
+forensics
+tests
+
+# Workbench development files
+workbench/tests
+workbench/requirements-dev.txt

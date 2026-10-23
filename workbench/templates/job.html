@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis {{ job.id[:8] }} &middot; {{ project_name }}{% endblock %}
+{% block page %}job{% endblock %}
+
+{% block content %}
+{% set completed = runs | selectattr("status", "equalto", "completed") | list | length %}
+{% set skipped = runs | selectattr("status", "equalto", "skipped") | list | length %}
+{% set failed = runs | selectattr("status", "equalto", "failed") | list | length %}
+{% set unavailable = runs | selectattr("status", "equalto", "unavailable") | list | length %}
+{% set running = runs | selectattr("status", "equalto", "running") | list | length %}
+{% set empty = runs | selectattr("status", "equalto", "empty") | list | length %}
+
+<section class="page-head">
+    <p class="eyebrow">Job {{ job.id }}</p>
+    <h1>{{ job.original_name }}</h1>
+    <p class="lede">
+        {{ job.detected_type }} &middot; {{ job.size | human_size }} &middot;
+        created <span class="mono">{{ job.created_at }}</span>
+    </p>
+</section>
+
+<section class="panel" id="job-progress"
+         data-status-url="{{ url_for('job_status', job_id=job.id) }}"
+         data-report-url="{{ url_for('report', job_id=job.id) }}"
+         data-terminal="{{ 'true' if terminal else 'false' }}">
+    <header class="panel__head">
+        <h2>Progress</h2>
+        <span class="status status--{{ job.status }}" id="job-status">{{ job.status }}</span>
+    </header>
+
+    <p class="progress-meta" id="job-progress-meta">
+        {{ completed }} completed &middot; {{ running }} running &middot;
+        {{ empty }} empty &middot; {{ skipped }} skipped &middot;
+        {{ unavailable }} unavailable &middot; {{ failed }} failed
+    </p>
+
+    <p class="form-error" id="job-error" {% if not job.error %}hidden{% endif %}>{{ job.error or "" }}</p>
+
+    <ol class="tool-list" id="tool-list">
+        {% for run in runs %}
+        <li class="tool tool--{{ run.status }}" data-tool="{{ run.tool }}">
+            <span class="tool__name">{{ run.display_name }}</span>
+            <span class="tool__status status status--{{ run.status }}">{{ run.status }}</span>
+            <span class="tool__summary">{{ run.summary or "" }}</span>
+            <span class="tool__time mono">{{ run.duration_ms ~ " ms" if run.duration_ms else "" }}</span>
+        </li>
+        {% endfor %}
+    </ol>
+
+    <div class="panel__actions">
+        <a class="button" id="report-link" href="{{ url_for('report', job_id=job.id) }}"
+           {% if not terminal %}hidden{% endif %}>View report</a>
+        <a class="button button--ghost" href="{{ url_for('index') }}">Analyze another file</a>
+    </div>
+</section>
+
+<p class="muted small">
+    Keep this URL to come back to this analysis. The job page refreshes itself while tools run.
+</p>
+{% endblock %}

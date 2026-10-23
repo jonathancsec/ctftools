@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: workbench/requirements-dev.txt
+      - name: Install dependencies
+        run: pip install -r workbench/requirements-dev.txt
+      - name: Run tests
+        run: python -m pytest -q
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the analysis image
+        run: docker build -f deploy/Dockerfile -t forensic-workbench:ci .
+      - name: Validate the Caddyfile
+        env:
+          SITE_DOMAIN: example.com
+        run: >-
+          docker run --rm -e SITE_DOMAIN
+          -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine
+          caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+      - name: Validate the production Compose file
+        env:
+          SECRET_KEY: ci-secret-0123456789
+          SITE_DOMAIN: example.com
+        run: docker compose -f deploy/docker-compose.prod.yml config --quiet
+      - name: Smoke-test the production server
+        run: |
+          docker run -d --name fw-smoke \
+            -e SECRET_KEY=ci-secret-0123456789 \
+            -e QUEUE_MODE=inline \
+            -p 8000:8000 \
+            forensic-workbench:ci
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/healthz; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs fw-smoke
+          exit 1
+      - name: Container logs on failure
+        if: failure()
+        run: docker logs fw-smoke || true
+      - name: Remove the container
+        if: always()
+        run: docker rm -f fw-smoke || true

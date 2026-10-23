@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ project_name }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body data-page="{% block page %}{% endblock %}">
+    <header class="site-header">
+        <a class="brand" href="{{ url_for('index') }}">forensic<span>_</span>workbench</a>
+        <nav class="site-nav">
+            <a href="{{ url_for('index') }}">New analysis</a>
+        </nav>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flashes" role="status">
+                {% for category, message in messages %}
+                    <p class="flash flash--{{ category }}">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="page">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <p>
+            Uploads and artifacts are kept for {{ retention_hours }} hours and purged by the
+            cleanup task. Tool output is evidence, not proof: verify every finding before
+            drawing conclusions.
+        </p>
+    </footer>
+</body>
+</html>

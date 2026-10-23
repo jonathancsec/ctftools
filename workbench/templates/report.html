@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Report {{ job.id[:8] }} &middot; {{ project_name }}{% endblock %}
+{% block page %}report{% endblock %}
+
+{% block content %}
+<section class="page-head">
+    <p class="eyebrow">Analysis report / {{ job.id }}</p>
+    <h1>{{ report.file.name }}</h1>
+    <p class="lede">
+        {{ report.file.type }} &middot; {{ report.file.size_human }} &middot;
+        <span class="status status--{{ report.job.status }}">{{ report.job.status }}</span>
+    </p>
+    <div class="actions">
+        <a class="button" href="{{ url_for('report_json', job_id=job.id) }}">Download JSON</a>
+        <a class="button button--ghost" href="{{ url_for('report_txt', job_id=job.id) }}">Download TXT</a>
+        <a class="button button--ghost" href="{{ url_for('job_detail', job_id=job.id) }}">Job page</a>
+    </div>
+</section>
+
+<section class="panel">
+    <header class="panel__head"><h2>File overview</h2></header>
+    <dl class="facts">
+        <div>
+            <dt>Detected type</dt>
+            <dd>{{ report.file.type }} <span class="muted">({{ report.file.mime }})</span></dd>
+        </div>
+        <div>
+            <dt>Extension</dt>
+            <dd>{{ report.file.extension or "(none)" }}</dd>
+        </div>
+        <div>
+            <dt>Size</dt>
+            <dd>{{ report.file.size_human }} ({{ report.file.size }} bytes)</dd>
+        </div>
+        <div>
+            <dt>SHA-256</dt>
+            <dd class="mono hash">{{ report.file.sha256 }}</dd>
+        </div>
+        <div>
+            <dt>MD5</dt>
+            <dd class="mono">{{ report.file.md5 }}</dd>
+        </div>
+        {% if report.file.image_format %}
+        <div>
+            <dt>Image</dt>
+            <dd>{{ report.file.image_format }}
+                {% if report.file.image_size %}{{ report.file.image_size[0] }} x {{ report.file.image_size[1] }}{% endif %}
+                {{ report.file.image_mode or "" }}</dd>
+        </div>
+        {% endif %}
+        <div>
+            <dt>Created (UTC)</dt>
+            <dd class="mono">{{ report.job.created_at }}</dd>
+        </div>
+        <div>
+            <dt>Finished (UTC)</dt>
+            <dd class="mono">{{ report.job.finished_at or "-" }}</dd>
+        </div>
+    </dl>
+</section>
+
+<div class="report-filter">
+    <input id="report-search" class="search-input" type="search"
+           placeholder="Search tool output, paths, flags, hashes...">
+    <p id="search-count" class="muted small" aria-live="polite"></p>
+</div>
+
+{% for tool in report.tools %}
+<details class="panel report-section" data-tool="{{ tool.tool }}"
+         {% if tool.status == "completed" and tool.output and (tool.output | length) < 4000 %}open{% endif %}>
+    <summary class="panel__head">
+        <h2>{{ tool.name }}</h2>
+        <span class="status status--{{ tool.status }}">{{ tool.status }}</span>
+        {% if tool.summary %}<span class="muted small">{{ tool.summary }}</span>{% endif %}
+        {% if tool.version %}<span class="muted small mono">{{ tool.version }}</span>{% endif %}
+        <span class="muted small mono">{{ tool.duration_ms }} ms</span>
+    </summary>
+    {% if tool.output %}
+        <pre class="output">{{ tool.output }}</pre>
+    {% endif %}
+    {% if tool.status == "failed" and tool.error %}
+        <p class="note note--error">{{ tool.error }}</p>
+    {% elif tool.error %}
+        <p class="note">{{ tool.error }}</p>
+    {% elif not tool.output %}
+        <p class="note">This tool produced no output for this file.</p>
+    {% endif %}
+</details>
+{% endfor %}
+
+<section class="panel">
+    <header class="panel__head"><h2>Artifacts</h2></header>
+    {% if artifacts %}
+    <p class="note">
+        Extracted files are untrusted. Downloads are always served as attachments
+        (never rendered inline); open them in a sandbox or VM.
+    </p>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr><th>Name</th><th>Size</th><th>SHA-256</th><th>Tool</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for artifact in artifacts %}
+                <tr>
+                    <td>{{ artifact.name }}</td>
+                    <td>{{ artifact.size | human_size }}</td>
+                    <td class="mono">{{ artifact.sha256[:16] }}...</td>
+                    <td>{{ artifact.tool }}</td>
+                    <td>
+                        {% if artifact.safe %}
+                            <a href="{{ url_for('artifact_download', job_id=job.id, artifact_id=artifact.id) }}">Download</a>
+                        {% else %}
+                            <span class="muted">Not downloadable</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="note">No artifacts were extracted for this analysis.</p>
+    {% endif %}
+</section>
+
+<section class="panel">
+    <header class="panel__head"><h2>Tool execution log</h2></header>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr><th>Tool</th><th>Status</th><th>Version</th><th>Duration</th><th>Finished</th></tr>
+            </thead>
+            <tbody>
+                {% for tool in report.tools %}
+                <tr>
+                    <td>{{ tool.name }}</td>
+                    <td><span class="status status--{{ tool.status }}">{{ tool.status }}</span></td>
+                    <td class="mono">{{ tool.version or "-" }}</td>
+                    <td>{{ tool.duration_ms }} ms</td>
+                    <td class="mono">{{ tool.finished_at or "-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<p class="disclaimer">
+    <strong>Findings vs conclusions.</strong> {{ report.disclaimer }}
+</p>
+{% endblock %}

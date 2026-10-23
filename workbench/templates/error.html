@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}{{ code }} &middot; {{ project_name }}{% endblock %}
+{% block page %}error{% endblock %}
+
+{% block content %}
+<section class="panel empty-state">
+    <p class="eyebrow">Error {{ code }}</p>
+    <h1>{{ message }}</h1>
+    <p class="lede">
+        Nothing was lost. Upload a new file or open an existing job from the list below.
+    </p>
+    <p><a class="button" href="{{ url_for('index') }}">Back to upload</a></p>
+</section>
+{% endblock %}
