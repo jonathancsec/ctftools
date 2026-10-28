@@ -8,3 +8,5 @@ data/
 instance/
 *.egg-info/
 .DS_Store
+.freebuff/
+.gitignore

@@ -7,18 +7,30 @@ from crypto.classical import (
     atbash,
     decode_a1z26,
     decode_bacon,
+    decode_polybius,
     decrypt_affine,
+    decrypt_beaufort,
+    decrypt_bifid,
     decrypt_columnar,
+    decrypt_playfair,
     decrypt_vigenere,
     encrypt_affine,
+    encrypt_beaufort,
+    encrypt_bifid,
     encrypt_columnar,
+    encrypt_playfair,
     encrypt_vigenere,
     rot47,
 )
 from crypto.encodings import (
     decode_base32,
+    decode_base58,
     decode_base85,
+    decode_decimal,
     decode_html,
+    decode_leetspeak,
+    decode_nato,
+    decode_octal,
     decode_url,
 )
 
@@ -116,6 +128,61 @@ def test_affine_round_trip_and_invalid_multiplier():
         decrypt_affine("abc", 2, 3)
 
 
+def test_polybius_decodes_coordinate_pairs():
+    assert decode_polybius("23 15 31 31 34 / 52 34 42 31 14") == "HELLO WORLD"
+    assert decode_polybius("2311") == "HA"
+    with pytest.raises(ValueError):
+        decode_polybius("16 23")
+    with pytest.raises(ValueError):
+        decode_polybius("23 15 3")
+
+
+def test_beaufort_round_trip_preserves_case_and_punctuation():
+    ciphertext = encrypt_beaufort("Attack at dawn!", "fortification")
+
+    assert ciphertext == "Fvytgv ij xtmb!"
+    assert decrypt_beaufort(ciphertext, "FORTIFICATION") == "Attack at dawn!"
+
+
+def test_bifid_round_trip_with_period():
+    plaintext = "defend the east wall of the castle"
+
+    ciphertext = encrypt_bifid(plaintext, "keyword", 5)
+
+    assert ciphertext == "RFNRDC FEY DBTA TPHY ZZ KFD PCLVKU"
+    assert decrypt_bifid(ciphertext, "keyword", 5) == plaintext.upper()
+    assert encrypt_bifid(plaintext, "keyword", 20) != ciphertext
+    with pytest.raises(ValueError):
+        decrypt_bifid("abc", "keyword", 0)
+
+
+def test_playfair_round_trip_with_filler_padding():
+    ciphertext = encrypt_playfair("Hide the gold in the tree stump", "monarchy")
+
+    assert ciphertext == "BFCKPDFIMPBKRQCFZDIUILLZOL"
+    assert decrypt_playfair(ciphertext, "MONARCHY") == "HIDETHEGOLDINTHETREXESTUMP"
+    with pytest.raises(ValueError):
+        decrypt_playfair("abc", "monarchy")
+
+
+def test_base58_decoding_uses_the_bitcoin_alphabet():
+    assert decode_base58("JxF12TrwUP45BMd") == "Hello World"
+    assert decode_base58("2NEpo7TZRRrLZSi2U") == "Hello World!"
+    with pytest.raises(ValueError):
+        decode_base58("0OIl")
+
+
+def test_nato_leetspeak_decimal_and_octal_decoding():
+    assert decode_nato("Tango Hotel Echo / Quebec Uniform India Charlie Kilo") == "THEQUICK"
+    assert decode_leetspeak("7h3 qu1ck 8r0wn f0x") == "the quick brown fox"
+    assert decode_decimal("84 104 101 32 113 117 105 99 107") == "The quick"
+    assert decode_octal("124 150 145 40 161 165 151 143 153") == "The quick"
+    with pytest.raises(ValueError):
+        decode_nato("Tango Whisky Foxtrot")
+    with pytest.raises(ValueError):
+        decode_decimal("84 300")
+
+
 def test_base32_and_base85_decoding():
     assert decode_base32(base64.b32encode(b"Hello world").decode()) == "Hello world"
     assert decode_base85(base64.b85encode(b"Hello world").decode()) == "Hello world"
@@ -142,6 +209,19 @@ CASES = [
     (bacon_encode("THE QUICK BROWN FOX"), "THEQUICKBROWNFOX"),
     (rail_encrypt("The quick brown fox jumps over the lazy dog", 4), "The quick brown fox jumps over the lazy dog"),
     ("LXFOPVEFRNHR", "ATTACKATDAWN"),
+    ("23 15 31 31 34 / 52 34 42 31 14", "HELLO WORLD"),
+    ("JxF12TrwUP45BMd", "Hello World"),
+    ("Tango Hotel Echo / Quebec Uniform India Charlie Kilo", "THEQUICK"),
+    ("7h3 qu1ck 8r0wn f0x", "the quick brown fox"),
+    (" ".join(str(byte) for byte in b"The quick brown fox"), "The quick brown fox"),
+    (" ".join(format(byte, "o") for byte in b"The quick brown fox"), "The quick brown fox"),
+    (
+        encrypt_beaufort(
+            "The quick brown fox jumps over the lazy dog and keeps running",
+            "lemon",
+        ),
+        "The quick brown fox jumps over the lazy dog and keeps running",
+    ),
 ]
 
 

@@ -5,6 +5,7 @@ later with a small adapter layer.
 """
 
 import sqlite3
+import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -105,6 +106,7 @@ def db(database_path):
     path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(path, timeout=30)
     connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA busy_timeout = 30000")
     connection.execute("PRAGMA foreign_keys = ON")
     try:
         yield connection
@@ -113,12 +115,24 @@ def db(database_path):
         connection.close()
 
 
+def _retry_locked(operation, attempts=10):
+    """Retry the short lock windows that appear when workers boot together."""
+    for attempt in range(attempts):
+        try:
+            return operation()
+        except sqlite3.OperationalError as error:
+            if "locked" not in str(error).lower() or attempt == attempts - 1:
+                raise
+            time.sleep(0.1 * (attempt + 1))
+
+
 def init_db(database_path):
     with db(database_path) as connection:
         # WAL lets the web workers, RQ worker and scheduler read while another
-        # process writes; the default rollback journal blocks readers.
-        connection.execute("PRAGMA journal_mode = WAL")
-        connection.executescript(SCHEMA)
+        # process writes; the default rollback journal blocks readers. Gunicorn
+        # starts all workers at once, so initializing here needs a retry window.
+        _retry_locked(lambda: connection.execute("PRAGMA journal_mode = WAL"))
+        _retry_locked(lambda: connection.executescript(SCHEMA))
 
 
 def _insert(database_path, table, fields):

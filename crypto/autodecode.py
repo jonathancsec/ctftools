@@ -16,19 +16,26 @@ from .classical import (
     atbash,
     decode_a1z26,
     decode_bacon,
+    decode_polybius,
     decrypt_affine,
+    decrypt_beaufort,
     decrypt_vigenere,
     rot47,
 )
 from .railfence import decrypt as decrypt_railfence
 from .encodings import (
     decode_base32,
+    decode_base58,
     decode_base64,
     decode_base85,
     decode_binary,
+    decode_decimal,
     decode_hex,
     decode_html,
+    decode_leetspeak,
     decode_morse,
+    decode_nato,
+    decode_octal,
     decode_url,
 )
 
@@ -147,6 +154,16 @@ def _vigenere_shift_chi(column, shift):
     )
 
 
+def _beaufort_shift_chi(column, shift):
+    # Beaufort is P = K - C, so guessing a key letter maps C to (K - C).
+    count = len(column)
+    counts = Counter((shift - (ord(character) - 97)) % 26 for character in column)
+    return sum(
+        (counts.get(index, 0) - count * percent / 100) ** 2 / (count * percent / 100)
+        for index, percent in enumerate(FREQ_PERCENT)
+    )
+
+
 def _add_encoding_candidates(add, text):
     cleaned = "".join(text.split())
 
@@ -176,10 +193,43 @@ def _add_encoding_candidates(add, text):
         if decoded is not None:
             add("Hex", decoded)
 
+    if (
+        len(cleaned) >= 8
+        and re.fullmatch(r"[1-9A-HJ-NP-Za-km-z]+", cleaned)
+        and any(character.isdigit() for character in cleaned)
+        and any(character.isalpha() for character in cleaned)
+    ):
+        decoded = _try_decode("Base58", decode_base58, text)
+        if decoded is not None:
+            add("Base58", decoded)
+
     if re.fullmatch(r"[01\s]+", text) and len(re.sub(r"\s", "", text)) >= 8:
         decoded = _try_decode("Binary", decode_binary, text)
         if decoded is not None:
             add("Binary", decoded)
+
+    number_tokens = re.findall(r"\d+", text)
+    numeric_input = (
+        len(number_tokens) >= 2
+        and not re.search(r"[^0-9\s,;./|+\-]", text.strip())
+    )
+
+    if (
+        numeric_input
+        and all(len(token) <= 3 and int(token) <= 255 for token in number_tokens)
+    ):
+        decoded = _try_decode("Decimal ASCII", decode_decimal, text)
+        if decoded is not None:
+            add("Decimal ASCII", decoded)
+
+    if (
+        numeric_input
+        and all(len(token) <= 3 and token[0] in "01234567" for token in number_tokens)
+        and max(int(token) for token in number_tokens) > 9
+    ):
+        decoded = _try_decode("Octal ASCII", decode_octal, text.replace("\\", " "))
+        if decoded is not None:
+            add("Octal ASCII", decoded)
 
     if re.fullmatch(r"[.\-·•–—_/\s]+", text) and any(character in ".-·•–—" for character in text):
         decoded = _try_decode("Morse", decode_morse, text)
@@ -232,6 +282,23 @@ def _add_encoding_candidates(add, text):
         decoded = _try_decode("Bacon", decode_bacon, text)
         if decoded is not None:
             add("Bacon", decoded)
+
+    if re.fullmatch(r"[1-5\s,;./|+\-]+", text.strip()):
+        digits = re.findall(r"[1-5]", text)
+        if len(digits) >= 4 and len(digits) % 2 == 0:
+            decoded = _try_decode("Polybius square", decode_polybius, text)
+            if decoded is not None:
+                add("Polybius square", decoded)
+
+    if re.search(r"[A-Za-z]", text) and re.search(r"[0-9@$]", text):
+        decoded = _try_decode("Leetspeak", decode_leetspeak, text)
+        if decoded is not None and decoded != text:
+            add("Leetspeak", decoded)
+
+    if re.fullmatch(r"[A-Za-z ,;/|\-]+", text.strip()) and len(text.split()) >= 2:
+        decoded = _try_decode("NATO alphabet", decode_nato, text)
+        if decoded is not None and decoded != text:
+            add("NATO alphabet", decoded)
 
 
 def _add_classical_candidates(add, text):
@@ -289,6 +356,35 @@ def _add_vigenere_crack(add, text):
             add(f"Vigenère crack (key: {key_text.upper()})", decoded)
 
 
+def _add_beaufort_crack(add, text):
+    letters = [
+        character.lower()
+        for character in text
+        if "a" <= character <= "z" or "A" <= character <= "Z"
+    ]
+    if len(letters) < 12:
+        return
+
+    for key in COMMON_KEYS:
+        add(f"Beaufort (key: {key.upper()})", decrypt_beaufort(text, key))
+
+    max_key_length = min(12, len(letters) // 2)
+    for key_length in range(1, max_key_length + 1):
+        key = []
+        for position in range(key_length):
+            column = letters[position::key_length]
+            best_shift = min(
+                range(26),
+                key=lambda shift: _beaufort_shift_chi(column, shift),
+            )
+            key.append(LETTERS[best_shift])
+
+        key_text = "".join(key)
+        decoded = decrypt_beaufort(text, key_text)
+        if decoded != text:
+            add(f"Beaufort crack (key: {key_text.upper()})", decoded)
+
+
 def autodecode(text):
     """Return ranked candidate decodings for an unknown cipher text."""
     if not isinstance(text, str):
@@ -318,6 +414,7 @@ def autodecode(text):
     _add_encoding_candidates(add, text)
     _add_classical_candidates(add, text)
     _add_vigenere_crack(add, text)
+    _add_beaufort_crack(add, text)
 
     results.sort(key=lambda item: item["score"], reverse=True)
     return results[:MAX_RESULTS]

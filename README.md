@@ -377,26 +377,3 @@ deploy/
 pytest.ini                           root test/import configuration
 .github/workflows/ci.yml             tests, image build and smoke test
 ```
-
-## Static CTF toolkit
-
-The pages at the repository root are deliberately standalone and can be hosted
-as static files, but their decoder and upload features call the local API. Start
-the API and page server with:
-
-```bash
-python server.py
-```
-
-Open <http://127.0.0.1:8000>. The cryptography page has an auto-decoder plus
-Caesar, rail fence, Atbash, ROT47, Vigenère, columnar transposition, binary,
-hex, Base32/64/85, URL, HTML, Morse, Bacon's cipher and A1Z26. The static
-`forensics.html` page is the earlier uploader prototype; the Flask workbench in
-`workbench/` is the fuller analysis platform.
-
-### About the original CTF toolkit
-
-> Hi i suck at coding but im gonna try to compile a bunch of CTF tools into a website
-> Stuff like
-> - Cryptography
-> - Maybe some file forensics?

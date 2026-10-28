@@ -183,6 +183,37 @@ wireDecoder({
     })
 });
 
+wireDecoder({
+    formId: "beaufort-form",
+    resultId: "beaufort-result",
+    buildRequest: () => ({
+        cipher: "beaufort",
+        text: document.getElementById("beaufort-input").value,
+        key: document.getElementById("beaufort-key").value
+    })
+});
+
+wireDecoder({
+    formId: "bifid-form",
+    resultId: "bifid-result",
+    buildRequest: () => ({
+        cipher: "bifid",
+        text: document.getElementById("bifid-input").value,
+        key: document.getElementById("bifid-key").value,
+        period: Number(document.getElementById("bifid-period").value)
+    })
+});
+
+wireDecoder({
+    formId: "playfair-form",
+    resultId: "playfair-result",
+    buildRequest: () => ({
+        cipher: "playfair",
+        text: document.getElementById("playfair-input").value,
+        key: document.getElementById("playfair-key").value
+    })
+});
+
 for (const [cipher, inputId] of [
     ["atbash", "atbash-input"],
     ["rot47", "rot47-input"],
@@ -191,11 +222,17 @@ for (const [cipher, inputId] of [
     ["base32", "base32-input"],
     ["base85", "base85-input"],
     ["base64", "base64-input"],
+    ["base58", "base58-input"],
     ["url", "url-input"],
     ["html", "html-input"],
     ["morse", "morse-input"],
     ["bacon", "bacon-input"],
-    ["a1z26", "a1z26-input"]
+    ["a1z26", "a1z26-input"],
+    ["polybius", "polybius-input"],
+    ["decimal", "decimal-input"],
+    ["octal", "octal-input"],
+    ["nato", "nato-input"],
+    ["leetspeak", "leetspeak-input"]
 ]) {
     wireDecoder({
         formId: `${cipher}-form`,

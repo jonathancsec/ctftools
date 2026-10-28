@@ -14,8 +14,12 @@ from crypto.classical import (
     atbash,
     decode_a1z26,
     decode_bacon,
+    decode_polybius,
     decrypt_affine,
+    decrypt_beaufort,
+    decrypt_bifid,
     decrypt_columnar,
+    decrypt_playfair,
     decrypt_vigenere,
     rot47,
 )
@@ -115,6 +119,26 @@ class ToolRequestHandler(SimpleHTTPRequestHandler):
                 if not isinstance(key, str):
                     raise ValueError("Columnar transposition needs a keyword.")
                 result = decrypt_columnar(text, key)
+            elif cipher == "beaufort":
+                key = request.get("key")
+                if not isinstance(key, str):
+                    raise ValueError("Beaufort needs an alphabetic key.")
+                result = decrypt_beaufort(text, key)
+            elif cipher == "bifid":
+                key = request.get("key")
+                if not isinstance(key, str):
+                    raise ValueError("Bifid needs an alphabetic key.")
+                period = request.get("period", 5)
+                if isinstance(period, bool) or not isinstance(period, int):
+                    raise ValueError("The Bifid period must be an integer.")
+                result = decrypt_bifid(text, key, period)
+            elif cipher == "playfair":
+                key = request.get("key")
+                if not isinstance(key, str):
+                    raise ValueError("Playfair needs an alphabetic key.")
+                result = decrypt_playfair(text, key)
+            elif cipher == "polybius":
+                result = decode_polybius(text)
             elif cipher == "affine":
                 multiplier = request.get("a")
                 offset = request.get("b")

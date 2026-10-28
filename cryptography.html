@@ -44,9 +44,10 @@
                 </form>
                 <p class="panel-hint">
                     Tries common encodings plus Caesar/ROT, Atbash, ROT47, rail fence, A1Z26,
-                    Bacon, affine and Vigenère. Results are ranked by how English-like they
-                    look, so short or non-English plaintext can be misleading. Columnar
-                    transposition still needs its keyword. Up to 5,000 characters per run.
+                    Bacon, Polybius, affine and Vigenère, and cracks Vigenère and Beaufort keys
+                    from letter frequencies. Results are ranked by how English-like they look,
+                    so short or non-English plaintext can be misleading. Columnar, Bifid and
+                    Playfair still need their keyword. Up to 5,000 characters per run.
                 </p>
                 <div id="auto-result" class="result" aria-live="polite" hidden></div>
                 <ol id="auto-results" class="candidate-list auto-results" aria-live="polite" hidden></ol>
@@ -140,6 +141,55 @@
                 <div id="columnar-result" class="result" aria-live="polite" hidden></div>
             </section>
 
+            <section class="decoder-panel" data-search="beaufort key polyalphabetic cipher">
+                <h2>Beaufort</h2>
+                <form id="beaufort-form">
+                    <label for="beaufort-input">Ciphertext</label>
+                    <textarea id="beaufort-input" rows="4" placeholder="Enter ciphertext" required></textarea>
+                    <label for="beaufort-key">Key</label>
+                    <input id="beaufort-key" type="text" placeholder="FORTIFICATION" autocomplete="off" required>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <p class="panel-hint">Uses C = key - plaintext, the variant that is its own inverse.</p>
+                <div id="beaufort-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="bifid fractionation polybius transposition key cipher">
+                <h2>Bifid</h2>
+                <form id="bifid-form">
+                    <label for="bifid-input">Ciphertext</label>
+                    <textarea id="bifid-input" rows="4" placeholder="Enter ciphertext" required></textarea>
+                    <label for="bifid-key">Key</label>
+                    <input id="bifid-key" type="text" placeholder="KEYWORD" autocomplete="off" required>
+                    <div class="form-row">
+                        <div class="field-group">
+                            <label for="bifid-period">Period</label>
+                            <input id="bifid-period" type="number" min="1" value="5" required>
+                        </div>
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <p class="panel-hint">I and J share a cell in the 5&times;5 square.</p>
+                <div id="bifid-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="playfair digraph polybius square keyword cipher">
+                <h2>Playfair</h2>
+                <form id="playfair-form">
+                    <label for="playfair-input">Ciphertext</label>
+                    <textarea id="playfair-input" rows="4" placeholder="Enter ciphertext" required></textarea>
+                    <label for="playfair-key">Key</label>
+                    <input id="playfair-key" type="text" placeholder="MONARCHY" autocomplete="off" required>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <p class="panel-hint">I and J share a cell; the X filler used for padding is kept in the output.</p>
+                <div id="playfair-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
             <section class="decoder-panel" data-search="binary bits ascii 8-bit base2 decode">
                 <h2>Binary</h2>
                 <form id="binary-form">
@@ -201,6 +251,19 @@
                 <div id="base64-result" class="result" aria-live="polite" hidden></div>
             </section>
 
+            <section class="decoder-panel" data-search="base58 base 58 b58 bitcoin alphabet encoding decode">
+                <h2>Base58</h2>
+                <form id="base58-form">
+                    <label for="base58-input">Base58 text (Bitcoin alphabet)</label>
+                    <textarea id="base58-input" rows="4" placeholder="StV1DL6CwTryKyV" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <p class="panel-hint">Uses the Bitcoin alphabet, which leaves out 0, O, I and l.</p>
+                <div id="base58-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
             <section class="decoder-panel" data-search="url percent encoding uri decode escape">
                 <h2>URL Encoding</h2>
                 <form id="url-form">
@@ -259,6 +322,70 @@
                     </div>
                 </form>
                 <div id="a1z26-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="polybius square coordinates 5x5 tap cipher">
+                <h2>Polybius Square</h2>
+                <form id="polybius-form">
+                    <label for="polybius-input">Coordinate pairs (digits 1-5, / between words)</label>
+                    <textarea id="polybius-input" rows="4" placeholder="23 15 31 31 34 / 52 34 42 31 14" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <p class="panel-hint">Row then column, I and J sharing cell 24.</p>
+                <div id="polybius-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="decimal ascii char codes numbers bytes decode">
+                <h2>Decimal Character Codes</h2>
+                <form id="decimal-form">
+                    <label for="decimal-input">Decimal codes 0-255</label>
+                    <textarea id="decimal-input" rows="4" placeholder="84 104 101 32 113 117 105 99 107" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <div id="decimal-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="octal ascii char codes numbers bytes decode base8">
+                <h2>Octal Character Codes</h2>
+                <form id="octal-form">
+                    <label for="octal-input">Octal codes 0-377</label>
+                    <textarea id="octal-input" rows="4" placeholder="124 150 145 40 161 165 151 143 153" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <p class="panel-hint">Also accepts escape-style input such as \150\145.</p>
+                <div id="octal-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="nato phonetic alphabet words spelling decode">
+                <h2>NATO Alphabet</h2>
+                <form id="nato-form">
+                    <label for="nato-input">Phonetic words</label>
+                    <textarea id="nato-input" rows="4" placeholder="Tango Hotel Echo / Quebec Uniform India Charlie Kilo" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <p class="panel-hint">Spells out letters; digits use Zero to Niner.</p>
+                <div id="nato-result" class="result" aria-live="polite" hidden></div>
+            </section>
+
+            <section class="decoder-panel" data-search="leetspeak leet 1337 slang substitutions decode">
+                <h2>Leetspeak</h2>
+                <form id="leetspeak-form">
+                    <label for="leetspeak-input">Leetspeak text</label>
+                    <textarea id="leetspeak-input" rows="4" placeholder="7h3 qu1ck 8r0wn f0x" required></textarea>
+                    <div class="form-row">
+                        <button type="submit">Decode</button>
+                    </div>
+                </form>
+                <p class="panel-hint">Maps 0=o, 1=i, 2=z, 3=e, 4=a, 5=s, 6=g, 7=t, 8=b, 9=g, @=a and $=s.</p>
+                <div id="leetspeak-result" class="result" aria-live="polite" hidden></div>
             </section>
         </div>
     </main>
